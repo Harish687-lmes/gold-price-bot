@@ -1,0 +1,7 @@
+services:
+  - type: cron
+    name: gold-price-bot
+    runtime: python
+    schedule: "*/30 * * * *"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python bot.py"
