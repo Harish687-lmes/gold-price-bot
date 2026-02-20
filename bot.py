@@ -18,13 +18,18 @@ def get_gold_rate():
 
     data = requests.get(url, headers=headers, timeout=10).json()
 
-    usd_per_oz = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+    price_per_oz = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
 
+# detect currency automatically
+if price_per_oz < 10000:
+    # USD/oz → convert to INR
     fx_url = "https://query1.finance.yahoo.com/v8/finance/chart/USDINR=X"
     fx_data = requests.get(fx_url, headers=headers, timeout=10).json()
     usd_inr = fx_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
-
-    base_price24 = usd_per_oz * usd_inr / 31.1035
+    base_price24 = price_per_oz * usd_inr / 31.1035
+else:
+    # already INR/oz
+    base_price24 = price_per_oz / 31.1035
 
     # Adjust to approximate Indian retail jewellery rate
     price24 = base_price24 * 1.175
@@ -42,6 +47,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
