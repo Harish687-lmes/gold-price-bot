@@ -88,12 +88,41 @@ def get_fuel_price():
         "petrol": 102.63,
         "diesel": 94.24
     }
+#----------------get today price------------------------
+def get_today_prices():
+    import json, os
+    from datetime import date
+
+    today = str(date.today())
+    file = "today_price.json"
+
+    # if already calculated today → reuse
+    if os.path.exists(file):
+        with open(file, "r") as f:
+            data = json.load(f)
+            if data.get("date") == today:
+                return data["gold22"], data["gold24"], data["silver"]
+
+    # otherwise calculate fresh
+    g22, g24 = get_gold_rate()
+    silver = get_silver_rate()
+
+    data = {
+        "date": today,
+        "gold22": g22,
+        "gold24": g24,
+        "silver": silver
+    }
+
+    with open(file, "w") as f:
+        json.dump(data, f)
+
+    return g22, g24, silver
 
 
 # ---------------- MAIN ----------------
 def main():
-    g22, g24 = get_gold_rate()
-    silver = get_silver_rate()
+    g22, g24, silver = get_today_prices()
     fuel = get_fuel_price()
 
     message = (
@@ -110,6 +139,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
