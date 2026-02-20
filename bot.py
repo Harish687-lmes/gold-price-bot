@@ -143,7 +143,7 @@ def get_silver_rate():
     base_price = usd_per_oz * usd_inr / 31.1035
 
     # Chennai jewellery retail conversion (~₹270/g)
-    retail_factor = 3.18
+    retail_factor = 3.69
     price_per_kg = base_price * retail_factor
 
     # convert kg → gram
@@ -196,6 +196,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
