@@ -142,12 +142,15 @@ def get_silver_rate():
     # Base international price per gram
     base_price = usd_per_oz * usd_inr / 31.1035
 
-    # Chennai jewellery retail conversion
+    # Chennai jewellery retail conversion (~₹270/g)
     retail_factor = 3.18
+    price_per_kg = base_price * retail_factor
 
-    price_per_g = base_price * retail_factor
+    # convert kg → gram
+    price_per_g = price_per_kg / 1000
 
     return round(price_per_g, 2)
+
 
 # ---------------- PETROL & DIESEL ----------------
 def get_fuel_price(city):
@@ -193,6 +196,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
