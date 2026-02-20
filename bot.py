@@ -49,37 +49,38 @@ def get_gold_rate():
 def get_silver_rate():
     import requests
 
-    # Get global spot metals
-    data = requests.get("https://api.metals.live/v1/spot", timeout=10).json()
+    headers = {"User-Agent": "Mozilla/5.0"}
 
-    silver_usd_oz = None
-    for item in data:
-        if "silver" in item:
-            silver_usd_oz = item["silver"]
-
-    if silver_usd_oz is None:
-        return "N/A"
-
-    # USDINR
-    fx = requests.get(
-        "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
+    # Spot silver XAGUSD (not futures)
+    silver_csv = requests.get(
+        "https://stooq.com/q/l/?s=xagusd&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
         timeout=10
-    ).text.split("\n")[-1]
+    ).text
 
-    usd_inr = float(fx.split(",")[6])
+    last_line = silver_csv.strip().split("\n")[-1]
+    usd_per_oz = float(last_line.split(",")[6])
 
-    # bullion ₹/g
-    bullion = (silver_usd_oz * usd_inr) / 31.1035
+    # USD to INR
+    fx_csv = requests.get(
+        "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
+        timeout=10
+    ).text
 
-    # Indian taxes
-    bullion *= 1.10   # import duty
-    bullion *= 1.05   # AIDC
-    bullion *= 1.03   # GST
+    fx_line = fx_csv.strip().split("\n")[-1]
+    usd_inr = float(fx_line.split(",")[6])
 
-    # Tamil Nadu dealer premium (~18%)
-    retail = bullion * 1.18
+    # Spot bullion ₹/g
+    bullion_per_g = (usd_per_oz * usd_inr) / 31.1035
 
-    return round(retail, 2)
+    # Apply Indian structure
+    bullion_per_g *= 1.10   # import duty
+    bullion_per_g *= 1.05   # AIDC
+    bullion_per_g *= 1.03   # GST
+    bullion_per_g *= 1.20   # Tamil Nadu dealer premium
+
+    return round(bullion_per_g, 2)
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price():
@@ -109,6 +110,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
