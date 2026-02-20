@@ -87,11 +87,30 @@ def get_silver_rate():
     return round(retail_price, 2)
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
-def get_fuel_price():
-    return {
-        "petrol": 102.63,
-        "diesel": 94.24
-    }
+def get_fuel_price(city="Chennai"):
+    import requests, re
+
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    city_slug = city.lower().replace(" ", "-")
+    url = f"https://www.goodreturns.in/petrol-price-in-{city_slug}.html"
+
+    try:
+        html = requests.get(url, headers=headers, timeout=15).text
+
+        petrol_match = re.search(r"Petrol Price.*?₹\s*([\d.]+)", html, re.S)
+        diesel_match = re.search(r"Diesel Price.*?₹\s*([\d.]+)", html, re.S)
+
+        if petrol_match and diesel_match:
+            petrol = float(petrol_match.group(1))
+            diesel = float(diesel_match.group(1))
+            return {"petrol": petrol, "diesel": diesel}
+
+    except Exception:
+        pass
+
+    return {"petrol": "N/A", "diesel": "N/A"}
+
 #----------------get today price------------------------
 def get_today_prices():
     import json, os
@@ -127,7 +146,7 @@ def get_today_prices():
 # ---------------- MAIN ----------------
 def main():
     g22, g24, silver = get_today_prices()
-    fuel = get_fuel_price()
+    fuel = get_fuel_price("Chennai")
 
     message = (
         f"📊 Chennai Daily Prices ({datetime.now().date()})\n\n"
@@ -143,6 +162,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
