@@ -20,7 +20,9 @@ def get_gold_rate():
 
     usd_per_oz = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
 
-    usd_inr = 83.0
+    fx_url = "https://query1.finance.yahoo.com/v8/finance/chart/USDINR=X"
+    fx_data = requests.get(fx_url, headers=headers, timeout=10).json()
+    usd_inr = fx_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
 
     base_price24 = usd_per_oz * usd_inr / 31.1035
 
@@ -40,6 +42,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
