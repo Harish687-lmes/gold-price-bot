@@ -51,36 +51,40 @@ def get_silver_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # Spot silver
+    # Spot Silver (XAGUSD) - USD per troy ounce
     silver_csv = requests.get(
         "https://stooq.com/q/l/?s=xagusd&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
         timeout=10
     ).text
 
-    last_line = silver_csv.strip().split("\n")[-1]
+    lines = silver_csv.strip().split("\n")
+    last_line = lines[-1]
     usd_per_oz = float(last_line.split(",")[6])
 
-    # USDINR
+    # USD → INR conversion
     fx_csv = requests.get(
         "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
         timeout=10
     ).text
 
-    fx_line = fx_csv.strip().split("\n")[-1]
-    usd_inr = float(fx_line.split(",")[6])
+    fx_lines = fx_csv.strip().split("\n")
+    fx_last = fx_lines[-1]
+    usd_inr = float(fx_last.split(",")[6])
 
-    bullion = (usd_per_oz * usd_inr) / 31.1035
+    # Base bullion price ₹/gram
+    bullion_per_g = (usd_per_oz * usd_inr) / 31.1035
 
     # Indian pricing structure
-    bullion *= 1.10   # import duty
-    bullion *= 1.05   # AIDC
-    bullion *= 1.03   # GST
-    bullion *= 1.10   # TN dealer premium (corrected)
+    bullion_per_g *= 1.10   # Import Duty (10%)
+    bullion_per_g *= 1.05   # AIDC (5%)
+    bullion_per_g *= 1.03   # GST (3%)
 
-    return round(bullion, 2)
+    # Tamil Nadu market normalization factor
+    retail_price = bullion_per_g * 0.92
 
+    return round(retail_price, 2)
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price():
@@ -139,6 +143,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
