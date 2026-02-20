@@ -91,7 +91,7 @@ def handle_updates():
         with open("offset.txt", "r") as f:
             offset = int(f.read().strip())
 
-    updates = requests.get(f"{BASE_URL}/getUpdates?offset={offset}").json()
+    updates = requests.get(f"{BASE_URL}/getUpdates?offset={offset}&timeout=10").json()
 
     if not updates["result"]:
         return
@@ -245,6 +245,7 @@ def main():
     # send daily prices only on scheduled run
     if os.environ.get("SCHEDULE_RUN") == "true":
         send_daily_prices()
+
 
 
 
