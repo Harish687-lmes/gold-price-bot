@@ -4,9 +4,7 @@ import json
 from datetime import datetime
 
 TOKEN = os.environ.get("BOT_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
 BASE_URL = f"https://api.telegram.org/bot{TOKEN}"
-
 USERS_FILE = "users.json"
 
 
@@ -16,7 +14,6 @@ def send_message(chat_id, text, keyboard=None):
         "chat_id": chat_id,
         "text": text
     }
-
     if keyboard:
         data["reply_markup"] = json.dumps(keyboard)
 
@@ -39,20 +36,19 @@ def save_users(users):
 def city_keyboard():
     return {
         "keyboard": [
-            ["Chennai", "Coimbatore"],
-            ["Madurai", "Bangalore"],
-            ["Hyderabad", "Mumbai"]
+            ["Chennai", "Bangalore"],
+            ["Hyderabad", "Mumbai"],
+            ["Delhi", "Kolkata"]
         ],
         "resize_keyboard": True,
         "one_time_keyboard": True
     }
 
 
-# ---------------- TELEGRAM UPDATES ----------------
+# ---------------- HANDLE UPDATES ----------------
 def handle_updates():
     users = load_users()
 
-    # load last update id
     offset = 0
     if os.path.exists("offset.txt"):
         with open("offset.txt", "r") as f:
@@ -72,20 +68,16 @@ def handle_updates():
         chat_id = str(message["chat"]["id"])
         text = message.get("text", "")
 
-        # /start command
         if text == "/start":
             send_message(chat_id, "Welcome 👋\nSelect your city:", city_keyboard())
 
-        # City selected
-        elif text in ["Chennai", "Coimbatore", "Madurai", "Bangalore", "Hyderabad", "Mumbai"]:
+        elif text in ["Chennai", "Bangalore", "Hyderabad", "Mumbai", "Delhi", "Kolkata"]:
             users[chat_id] = {"city": text}
             save_users(users)
             send_message(chat_id, f"✅ City saved: {text}\nYou will receive daily prices at 9 AM")
 
-        # save next offset
         offset = update_id + 1
 
-    # store offset so updates are not repeated
     with open("offset.txt", "w") as f:
         f.write(str(offset))
 
@@ -121,6 +113,20 @@ def get_gold_rate():
     return round(price22, 2), round(price24, 2)
 
 
+# ---------------- PETROL & DIESEL (STATIC DAILY SAMPLE) ----------------
+def get_fuel_price(city):
+    fuel_prices = {
+        "Chennai": {"petrol": 102.63, "diesel": 94.24},
+        "Bangalore": {"petrol": 101.94, "diesel": 87.89},
+        "Hyderabad": {"petrol": 109.66, "diesel": 97.82},
+        "Mumbai": {"petrol": 106.31, "diesel": 94.27},
+        "Delhi": {"petrol": 96.72, "diesel": 89.62},
+        "Kolkata": {"petrol": 106.03, "diesel": 92.76}
+    }
+
+    return fuel_prices.get(city, {"petrol": "-", "diesel": "-"})
+
+
 # ---------------- DAILY SEND ----------------
 def send_daily_prices():
     users = load_users()
@@ -128,7 +134,16 @@ def send_daily_prices():
 
     for chat_id in users:
         city = users[chat_id]["city"]
-        msg = f"📊 {city} Daily Gold Price ({datetime.now().date()})\n22K ₹{g22}/g\n24K ₹{g24}/g"
+        fuel = get_fuel_price(city)
+
+        msg = (
+            f"📊 {city} Daily Prices ({datetime.now().date()})\n\n"
+            f"Gold 22K ₹{g22}/g\n"
+            f"Gold 24K ₹{g24}/g\n\n"
+            f"Petrol ₹{fuel['petrol']}\n"
+            f"Diesel ₹{fuel['diesel']}"
+        )
+
         send_message(chat_id, msg)
 
 
@@ -140,4 +155,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
