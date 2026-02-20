@@ -119,7 +119,6 @@ def get_silver_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # Silver futures USD per ounce
     silver_csv = requests.get(
         "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
@@ -129,7 +128,6 @@ def get_silver_rate():
     last_line = silver_csv.strip().split("\n")[-1]
     usd_per_oz = float(last_line.split(",")[6])
 
-    # USD to INR
     fx_csv = requests.get(
         "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
@@ -139,16 +137,10 @@ def get_silver_rate():
     fx_line = fx_csv.strip().split("\n")[-1]
     usd_inr = float(fx_line.split(",")[6])
 
-    # International price per gram
-    intl_price_per_g = usd_per_oz * usd_inr / 31.1035
-
-    # Convert to Indian retail (₹/kg market)
-    india_price_per_kg = intl_price_per_g * 3.72
-
-    # Convert kg → gram
-    price_per_g = india_price_per_kg / 1000
+    price_per_g = usd_per_oz * usd_inr / 31.1035
 
     return round(price_per_g, 2)
+
 
 
 
@@ -197,6 +189,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
