@@ -111,7 +111,24 @@ def handle_updates():
         elif text in ["Chennai", "Bangalore", "Hyderabad", "Mumbai", "Delhi", "Kolkata"]:
             users[chat_id] = {"city": text}
             save_users(users)
-            send_message(chat_id, f"✅ City saved: {text}\nYou will receive daily prices at 9 AM")
+
+            send_message(chat_id, f"✅ City saved: {text}")
+
+            # Immediately send today's prices
+            g22, g24 = get_gold_rate()
+            silver = get_silver_rate()
+            fuel = get_fuel_price(text)
+
+            msg = (
+                f"📊 {text} Daily Prices\n\n"
+                f"Gold 22K ₹{g22}/g\n"
+                f"Gold 24K ₹{g24}/g\n"
+                f"Silver ₹{silver}/g\n\n"
+                f"Petrol ₹{fuel['petrol']}\n"
+                f"Diesel ₹{fuel['diesel']}"
+            )
+
+            send_message(chat_id, msg)
 
         offset = update_id + 1
 
@@ -218,6 +235,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
