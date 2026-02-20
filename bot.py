@@ -171,25 +171,35 @@ def get_gold_rate():
 def get_silver_rate():
     import requests
 
-    try:
-        headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {"User-Agent": "Mozilla/5.0"}
 
-        url = "https://priceapi.moneycontrol.com/pricefeed/commodity/silver"
-        r = requests.get(url, headers=headers, timeout=10)
+    # Silver international USD/oz
+    silver_csv = requests.get(
+        "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
+        timeout=10
+    ).text
 
-        if r.status_code != 200:
-            return "N/A"
+    last_line = silver_csv.strip().split("\n")[-1]
+    usd_per_oz = float(last_line.split(",")[6])
 
-        data = r.json()
-        price_per_kg = float(data["data"]["pricecurrent"])
+    # USDINR
+    fx_csv = requests.get(
+        "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
+        timeout=10
+    ).text
 
-        return round(price_per_kg / 1000, 2)
+    fx_line = fx_csv.strip().split("\n")[-1]
+    usd_inr = float(fx_line.split(",")[6])
 
-    except Exception:
-        return "N/A"
+    # global silver ₹/g
+    intl_price = usd_per_oz * usd_inr / 31.1035
 
+    # Indian retail premium (stable average Chennai)
+    retail_price = intl_price * 3.65
 
-
+    return round(retail_price, 2)
 
 # ---------------- PETROL & DIESEL ----------------
 def get_fuel_price(city):
@@ -235,6 +245,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
