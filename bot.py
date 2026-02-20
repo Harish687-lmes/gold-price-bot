@@ -71,23 +71,28 @@ def get_silver_rate():
     fx_line = fx_csv.strip().split("\n")[-1]
     usd_inr = float(fx_line.split(",")[6])
 
-    # Step 1: bullion ₹/g
-    bullion = (usd_per_oz * usd_inr) / 31.1035
+    # bullion ₹ per gram
+    bullion_g = (usd_per_oz * usd_inr) / 31.1035
 
-    # Step 2: import duty 10%
-    after_duty = bullion * 1.10
+    # convert to kg market scale
+    bullion_kg = bullion_g * 1000
 
-    # Step 3: AIDC 5%
+    # import duty 10%
+    after_duty = bullion_kg * 1.10
+
+    # AIDC 5%
     after_aidc = after_duty * 1.05
 
-    # Step 4: GST 3%
+    # GST 3%
     after_gst = after_aidc * 1.03
 
-    # Step 5: local dealer premium (Tamil Nadu avg)
-    retail = after_gst * 1.22
+    # Tamil Nadu dealer premium
+    retail_kg = after_gst * 1.22
 
-    return round(retail, 2)
+    # convert back to gram
+    retail_g = retail_kg / 1000
 
+    return round(retail_g, 2)
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price():
@@ -117,6 +122,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
