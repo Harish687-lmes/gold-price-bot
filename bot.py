@@ -22,14 +22,51 @@ def send_message(chat_id, text, keyboard=None):
 
 # ---------------- USERS STORAGE ----------------
 def load_users():
-    if not os.path.exists(USERS_FILE):
+    import base64
+
+    token = os.environ.get("GH_TOKEN")
+    repo = os.environ.get("GITHUB_REPOSITORY")
+
+    if not token or not repo:
         return {}
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
+
+    url = f"https://api.github.com/repos/{repo}/contents/users.json"
+    headers = {"Authorization": f"token {token}"}
+
+    r = requests.get(url, headers=headers)
+
+    if r.status_code != 200:
+        return {}
+
+    content = base64.b64decode(r.json()["content"])
+    return json.loads(content)
 
 def save_users(users):
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f)
+    import base64
+
+    token = os.environ.get("GH_TOKEN")
+    repo = os.environ.get("GITHUB_REPOSITORY")
+
+    if not token or not repo:
+        return
+
+    content = base64.b64encode(json.dumps(users).encode()).decode()
+
+    url = f"https://api.github.com/repos/{repo}/contents/users.json"
+    headers = {"Authorization": f"token {token}"}
+
+    # check if file exists
+    r = requests.get(url, headers=headers)
+    sha = r.json()["sha"] if r.status_code == 200 else None
+
+    data = {
+        "message": "update users",
+        "content": content,
+        "sha": sha
+    }
+
+    requests.put(url, headers=headers, json=data)
+
 
 
 # ---------------- CITY MENU ----------------
@@ -181,6 +218,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
