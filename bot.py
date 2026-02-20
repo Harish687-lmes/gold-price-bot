@@ -15,7 +15,7 @@ def get_gold_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # Fetch gold futures data
+    # Fetch gold futures data from Yahoo
     url = "https://query1.finance.yahoo.com/v8/finance/chart/GC=F"
     data = requests.get(url, headers=headers, timeout=10).json()
 
@@ -23,26 +23,30 @@ def get_gold_rate():
 
     # ---------- UNIT DETECTION ----------
     if price_raw < 10000:
-        # USD per ounce
+        # USD per ounce (COMEX)
         fx_url = "https://query1.finance.yahoo.com/v8/finance/chart/USDINR=X"
         fx_data = requests.get(fx_url, headers=headers, timeout=10).json()
         usd_inr = fx_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+
         base_price24 = price_raw * usd_inr / 31.1035
+        retail_factor = 1.175   # full import duty + GST conversion
 
     elif price_raw < 100000:
         # INR per 10 grams (MCX)
         base_price24 = price_raw / 10
+        retail_factor = 1.035   # small local premium only
 
     else:
         # INR per ounce
         base_price24 = price_raw / 31.1035
+        retail_factor = 1.035
 
     # ---------- RETAIL ADJUSTMENT ----------
-    # Converts bullion → Indian jewellery shop rate
-    price24 = base_price24 * 1.175
+    price24 = base_price24 * retail_factor
     price22 = price24 * 0.916
 
     return round(price22, 2), round(price24, 2)
+
 
 def main():
     g22,g24 = get_gold_rate()
@@ -54,6 +58,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
