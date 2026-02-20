@@ -113,7 +113,35 @@ def get_gold_rate():
     return round(price22, 2), round(price24, 2)
 
 
-# ---------------- PETROL & DIESEL (STATIC DAILY SAMPLE) ----------------
+# ---------------- SILVER PRICE ----------------
+def get_silver_rate():
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    silver_csv = requests.get(
+        "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
+        timeout=10
+    ).text
+
+    last_line = silver_csv.strip().split("\n")[-1]
+    usd_per_oz = float(last_line.split(",")[6])
+
+    fx_csv = requests.get(
+        "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
+        timeout=10
+    ).text
+
+    fx_line = fx_csv.strip().split("\n")[-1]
+    usd_inr = float(fx_line.split(",")[6])
+
+    # ounce → gram
+    price_per_g = usd_per_oz * usd_inr / 31.1035
+
+    return round(price_per_g, 2)
+
+
+# ---------------- PETROL & DIESEL ----------------
 def get_fuel_price(city):
     fuel_prices = {
         "Chennai": {"petrol": 102.63, "diesel": 94.24},
@@ -131,6 +159,7 @@ def get_fuel_price(city):
 def send_daily_prices():
     users = load_users()
     g22, g24 = get_gold_rate()
+    silver = get_silver_rate()
 
     for chat_id in users:
         city = users[chat_id]["city"]
@@ -139,7 +168,8 @@ def send_daily_prices():
         msg = (
             f"📊 {city} Daily Prices ({datetime.now().date()})\n\n"
             f"Gold 22K ₹{g22}/g\n"
-            f"Gold 24K ₹{g24}/g\n\n"
+            f"Gold 24K ₹{g24}/g\n"
+            f"Silver ₹{silver}/g\n\n"
             f"Petrol ₹{fuel['petrol']}\n"
             f"Diesel ₹{fuel['diesel']}"
         )
