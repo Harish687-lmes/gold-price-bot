@@ -119,37 +119,22 @@ def get_silver_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # International silver USD per ounce
-    silver_csv = requests.get(
-        "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
-        headers=headers,
-        timeout=10
-    ).text
+    # MCX Silver India (₹ per kg)
+    url = "https://priceapi.moneycontrol.com/pricefeed/commodity/silver"
+    r = requests.get(url, headers=headers, timeout=10)
 
-    last_line = silver_csv.strip().split("\n")[-1]
-    usd_per_oz = float(last_line.split(",")[6])
+    if r.status_code != 200:
+        raise Exception("Silver price fetch failed")
 
-    # USD → INR
-    fx_csv = requests.get(
-        "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
-        headers=headers,
-        timeout=10
-    ).text
+    data = r.json()
 
-    fx_line = fx_csv.strip().split("\n")[-1]
-    usd_inr = float(fx_line.split(",")[6])
-
-    # Base international price per gram
-    base_price = usd_per_oz * usd_inr / 31.1035
-
-    # Chennai jewellery retail conversion (~₹270/g)
-    retail_factor = 3.69
-    price_per_kg = base_price * retail_factor
+    price_per_kg = float(data["data"]["pricecurrent"])
 
     # convert kg → gram
     price_per_g = price_per_kg / 1000
 
     return round(price_per_g, 2)
+
 
 
 # ---------------- PETROL & DIESEL ----------------
@@ -196,6 +181,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
