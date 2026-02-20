@@ -12,26 +12,27 @@ def send(msg):
     )
 def get_gold_rate():
     import requests
-    import csv
-    from io import StringIO
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # LBMA Gold Price USD per ounce (official benchmark)
-    url = "https://data-asg.goldprice.org/dbXRates/USD"
-    data = requests.get(url, headers=headers, timeout=10).json()
+    # Stooq gold futures (USD per ounce)
+    url = "https://stooq.com/q/l/?s=gc.f&f=sd2t2ohlcv&h&e=csv"
+    text = requests.get(url, headers=headers, timeout=10).text
 
-    usd_per_oz = data["items"][0]["xauPrice"]
+    # CSV format: Symbol,Date,Time,Open,High,Low,Close,Volume
+    last_line = text.strip().split("\n")[-1]
+    close_price = float(last_line.split(",")[6])  # USD per ounce
 
-    # Get live USDINR
-    fx_url = "https://open.er-api.com/v6/latest/USD"
-    fx = requests.get(fx_url, headers=headers, timeout=10).json()
-    usd_inr = fx["rates"]["INR"]
+    # USD → INR
+    fx = requests.get("https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
+                      headers=headers, timeout=10).text
+    fx_line = fx.strip().split("\n")[-1]
+    usd_inr = float(fx_line.split(",")[6])
 
-    # Convert to INR per gram
-    base_price24 = usd_per_oz * usd_inr / 31.1035
+    # Convert ounce → gram
+    base_price24 = close_price * usd_inr / 31.1035
 
-    # India import duty + GST + premium (~17.5%)
+    # India retail conversion (~17.5%)
     price24 = base_price24 * 1.175
     price22 = price24 * 0.916
 
@@ -48,6 +49,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
