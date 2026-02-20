@@ -91,21 +91,21 @@ def get_fuel_price(city="Chennai"):
     import requests
 
     try:
-        url = f"https://fuelprice-api-india.herokuapp.com/price?city={city}"
-        r = requests.get(url, timeout=10)
+        url = "https://www.iocl.com/fuel-price-data"
+        data = requests.get(url, timeout=15).json()
 
-        if r.status_code != 200:
-            return {"petrol": "N/A", "diesel": "N/A"}
+        city = city.lower()
 
-        data = r.json()
-
-        petrol = float(data["petrol"])
-        diesel = float(data["diesel"])
-
-        return {"petrol": petrol, "diesel": diesel}
+        for item in data["data"]:
+            if item["city"].lower() == city:
+                petrol = float(item["petrol"])
+                diesel = float(item["diesel"])
+                return {"petrol": petrol, "diesel": diesel}
 
     except Exception:
-        return {"petrol": "N/A", "diesel": "N/A"}
+        pass
+
+    return {"petrol": "N/A", "diesel": "N/A"}
 
 #----------------get today price------------------------
 def get_today_prices():
@@ -158,6 +158,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
