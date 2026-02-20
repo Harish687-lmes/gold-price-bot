@@ -241,11 +241,11 @@ def send_daily_prices():
 # ---------------- MAIN ----------------
 def main():
     handle_updates()
-    send_daily_prices()
 
+    # send daily prices only on scheduled run
+    if os.environ.get("SCHEDULE_RUN") == "true":
+        send_daily_prices()
 
-if __name__ == "__main__":
-    main()
 
 
 
