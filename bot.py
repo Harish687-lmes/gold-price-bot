@@ -52,12 +52,19 @@ def city_keyboard():
 def handle_updates():
     users = load_users()
 
-    updates = requests.get(f"{BASE_URL}/getUpdates").json()
+    # load last update id
+    offset = 0
+    if os.path.exists("offset.txt"):
+        with open("offset.txt", "r") as f:
+            offset = int(f.read().strip())
+
+    updates = requests.get(f"{BASE_URL}/getUpdates?offset={offset}").json()
 
     if not updates["result"]:
         return
 
     for update in updates["result"]:
+        update_id = update["update_id"]
         message = update.get("message")
         if not message:
             continue
@@ -68,14 +75,19 @@ def handle_updates():
         # /start command
         if text == "/start":
             send_message(chat_id, "Welcome 👋\nSelect your city:", city_keyboard())
-            continue
 
         # City selected
-        if text in ["Chennai", "Coimbatore", "Madurai", "Bangalore", "Hyderabad", "Mumbai"]:
+        elif text in ["Chennai", "Coimbatore", "Madurai", "Bangalore", "Hyderabad", "Mumbai"]:
             users[chat_id] = {"city": text}
             save_users(users)
             send_message(chat_id, f"✅ City saved: {text}\nYou will receive daily prices at 9 AM")
-            continue
+
+        # save next offset
+        offset = update_id + 1
+
+    # store offset so updates are not repeated
+    with open("offset.txt", "w") as f:
+        f.write(str(offset))
 
 
 # ---------------- GOLD PRICE ----------------
@@ -128,3 +140,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
