@@ -86,7 +86,7 @@ def city_keyboard():
 def handle_updates():
     users = load_users()
 
-    offset = 0
+    offset = -1
     if os.path.exists("offset.txt"):
         with open("offset.txt", "r") as f:
             offset = int(f.read().strip())
@@ -246,6 +246,7 @@ def main():
     # send daily prices only on scheduled run
     if os.environ.get("SCHEDULE_RUN") == "true":
         send_daily_prices()
+
 
 
 
