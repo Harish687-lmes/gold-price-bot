@@ -47,39 +47,26 @@ def get_gold_rate():
 
 # ---------------- SILVER PRICE ----------------
 def get_silver_rate():
-    import requests
+    import requests, re
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # USD per ounce
-    silver_csv = requests.get(
-        "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
-        headers=headers,
-        timeout=10
-    ).text
+    url = "https://www.goldrateindia.com/silver-rate-today/"
 
-    last_line = silver_csv.strip().split("\n")[-1]
-    usd_per_oz = float(last_line.split(",")[6])
+    r = requests.get(url, headers=headers, timeout=15)
+    html = r.text
 
-    # USD to INR
-    fx_csv = requests.get(
-        "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
-        headers=headers,
-        timeout=10
-    ).text
+    # extract "₹ 27,000 per 100g" style value
+    match = re.search(r"₹\s*([\d,]+)\s*per\s*100g", html)
 
-    fx_line = fx_csv.strip().split("\n")[-1]
-    usd_inr = float(fx_line.split(",")[6])
+    if not match:
+        return "N/A"
 
-    # international bullion ₹/g
-    bullion_per_g = (usd_per_oz * usd_inr) / 31.1035 / 1000
+    price_100g = float(match.group(1).replace(",", ""))
 
-    # Indian jewellery conversion
-    retail_per_g = bullion_per_g * 3.15
+    price_per_g = price_100g / 100
 
-    return round(retail_per_g, 2)
-
-
+    return round(price_per_g, 2)
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price():
@@ -109,4 +96,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
