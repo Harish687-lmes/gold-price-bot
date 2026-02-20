@@ -173,7 +173,7 @@ def get_silver_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # Silver international USD/oz
+    # International silver USD/oz
     silver_csv = requests.get(
         "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
@@ -193,13 +193,14 @@ def get_silver_rate():
     fx_line = fx_csv.strip().split("\n")[-1]
     usd_inr = float(fx_line.split(",")[6])
 
-    # global silver ₹/g
-    intl_price = usd_per_oz * usd_inr / 31.1035
+    # bullion price per gram
+    bullion_per_g = usd_per_oz * usd_inr / 31.1035
 
-    # Indian retail premium (stable average Chennai)
-    retail_price = intl_price * 3.65
+    # convert bullion → jewellery retail (India)
+    jewellery_per_g = bullion_per_g * 3.2
 
-    return round(retail_price, 2)
+    return round(jewellery_per_g, 2)
+
 
 # ---------------- PETROL & DIESEL ----------------
 def get_fuel_price(city):
@@ -245,6 +246,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
