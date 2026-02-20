@@ -15,35 +15,25 @@ def get_gold_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # Fetch gold futures data from Yahoo
-    url = "https://query1.finance.yahoo.com/v8/finance/chart/GC=F"
-    data = requests.get(url, headers=headers, timeout=10).json()
+    # IBJA India bullion benchmark (₹ per 10g)
+    url = "https://www.goodreturns.in/gold-rates/chennai.html"
+    html = requests.get(url, headers=headers, timeout=10).text
 
-    price_raw = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+    import re
 
-    # ---------- UNIT DETECTION ----------
-    if price_raw < 10000:
-        # USD per ounce (COMEX)
-        fx_url = "https://query1.finance.yahoo.com/v8/finance/chart/USDINR=X"
-        fx_data = requests.get(fx_url, headers=headers, timeout=10).json()
-        usd_inr = fx_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+    # extract 24K price
+    m24 = re.search(r'24 Carat Gold Rate.*?₹\s*([0-9,]+)', html, re.S)
+    m22 = re.search(r'22 Carat Gold Rate.*?₹\s*([0-9,]+)', html, re.S)
 
-        base_price24 = price_raw * usd_inr / 31.1035
-        retail_factor = 1.175   # full import duty + GST conversion
+    if not m24 or not m22:
+        raise Exception("Could not fetch Chennai gold rate")
 
-    elif price_raw < 100000:
-        # INR per 10 grams (MCX)
-        base_price24 = price_raw / 10
-        retail_factor = 1.035   # small local premium only
+    price24 = float(m24.group(1).replace(",", ""))
+    price22 = float(m22.group(1).replace(",", ""))
 
-    else:
-        # INR per ounce
-        base_price24 = price_raw / 31.1035
-        retail_factor = 1.035
-
-    # ---------- RETAIL ADJUSTMENT ----------
-    price24 = base_price24 * retail_factor
-    price22 = price24 * 0.916
+    # website gives per 10g → convert to per gram
+    price24 = price24 / 10
+    price22 = price22 / 10
 
     return round(price22, 2), round(price24, 2)
 
@@ -58,6 +48,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
