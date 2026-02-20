@@ -49,50 +49,37 @@ def get_gold_rate():
 def get_silver_rate():
     import requests
 
-    headers = {"User-Agent": "Mozilla/5.0"}
+    # Get global spot metals
+    data = requests.get("https://api.metals.live/v1/spot", timeout=10).json()
 
-    # Global silver USD per ounce
-    silver_csv = requests.get(
-        "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
-        headers=headers,
-        timeout=10
-    ).text
+    silver_usd_oz = None
+    for item in data:
+        if "silver" in item:
+            silver_usd_oz = item["silver"]
 
-    last_line = silver_csv.strip().split("\n")[-1]
-    usd_per_oz = float(last_line.split(",")[6])
+    if silver_usd_oz is None:
+        return "N/A"
 
-    # USD to INR
-    fx_csv = requests.get(
+    # USDINR
+    fx = requests.get(
         "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
-        headers=headers,
         timeout=10
-    ).text
+    ).text.split("\n")[-1]
 
-    fx_line = fx_csv.strip().split("\n")[-1]
-    usd_inr = float(fx_line.split(",")[6])
+    usd_inr = float(fx.split(",")[6])
 
-    # bullion ₹ per gram
-    bullion_g = (usd_per_oz * usd_inr) / 31.1035
+    # bullion ₹/g
+    bullion = (silver_usd_oz * usd_inr) / 31.1035
 
-    # convert to kg market scale
-    bullion_kg = bullion_g * 1000
+    # Indian taxes
+    bullion *= 1.10   # import duty
+    bullion *= 1.05   # AIDC
+    bullion *= 1.03   # GST
 
-    # import duty 10%
-    after_duty = bullion_kg * 1.10
+    # Tamil Nadu dealer premium (~18%)
+    retail = bullion * 1.18
 
-    # AIDC 5%
-    after_aidc = after_duty * 1.05
-
-    # GST 3%
-    after_gst = after_aidc * 1.03
-
-    # Tamil Nadu dealer premium
-    retail_kg = after_gst * 1.22
-
-    # convert back to gram
-    retail_g = retail_kg / 1000
-
-    return round(retail_g, 2)
+    return round(retail, 2)
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price():
@@ -122,6 +109,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
