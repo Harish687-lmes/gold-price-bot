@@ -51,7 +51,7 @@ def get_silver_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # Spot silver XAGUSD (not futures)
+    # Spot silver
     silver_csv = requests.get(
         "https://stooq.com/q/l/?s=xagusd&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
@@ -61,7 +61,7 @@ def get_silver_rate():
     last_line = silver_csv.strip().split("\n")[-1]
     usd_per_oz = float(last_line.split(",")[6])
 
-    # USD to INR
+    # USDINR
     fx_csv = requests.get(
         "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
@@ -71,16 +71,16 @@ def get_silver_rate():
     fx_line = fx_csv.strip().split("\n")[-1]
     usd_inr = float(fx_line.split(",")[6])
 
-    # Spot bullion ₹/g
-    bullion_per_g = (usd_per_oz * usd_inr) / 31.1035
+    bullion = (usd_per_oz * usd_inr) / 31.1035
 
-    # Apply Indian structure
-    bullion_per_g *= 1.10   # import duty
-    bullion_per_g *= 1.05   # AIDC
-    bullion_per_g *= 1.03   # GST
-    bullion_per_g *= 1.20   # Tamil Nadu dealer premium
+    # Indian pricing structure
+    bullion *= 1.10   # import duty
+    bullion *= 1.05   # AIDC
+    bullion *= 1.03   # GST
+    bullion *= 1.10   # TN dealer premium (corrected)
 
-    return round(bullion_per_g, 2)
+    return round(bullion, 2)
+
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price():
@@ -110,6 +110,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
