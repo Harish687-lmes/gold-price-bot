@@ -25,7 +25,7 @@ def get_gold_rate():
     base_price24 = usd_per_oz * usd_inr / 31.1035
 
     # Adjust to approximate Indian retail jewellery rate
-    price24 = base_price24 * 1.20
+    price24 = base_price24 * 1.175
     price22 = price24 * 0.916
 
     return round(price22, 2), round(price24, 2)
@@ -40,6 +40,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
