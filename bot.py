@@ -111,30 +111,31 @@ def handle_updates():
         elif text in ["Chennai", "Bangalore", "Hyderabad", "Mumbai", "Delhi", "Kolkata"]:
             users[chat_id] = {"city": text}
             save_users(users)
-
             send_message(chat_id, f"✅ City saved: {text}")
 
-            # Immediately send today's prices
-            g22, g24 = get_gold_rate()
-            silver = get_silver_rate()
-            fuel = get_fuel_price(text)
+        elif text == "/price":
+            if chat_id not in users:
+                send_message(chat_id, "Please select a city first using /start")
+            else:
+                city = users[chat_id]["city"]
+                g22, g24 = get_gold_rate()
+                silver = get_silver_rate()
+                fuel = get_fuel_price(city)
 
-            msg = (
-                f"📊 {text} Daily Prices\n\n"
-                f"Gold 22K ₹{g22}/g\n"
-                f"Gold 24K ₹{g24}/g\n"
-                f"Silver ₹{silver}/g\n\n"
-                f"Petrol ₹{fuel['petrol']}\n"
-                f"Diesel ₹{fuel['diesel']}"
-            )
-
-            send_message(chat_id, msg)
+                msg = (
+                    f"📊 {city} Prices\n\n"
+                    f"Gold 22K ₹{g22}/g\n"
+                    f"Gold 24K ₹{g24}/g\n"
+                    f"Silver ₹{silver}/g\n\n"
+                    f"Petrol ₹{fuel['petrol']}\n"
+                    f"Diesel ₹{fuel['diesel']}"
+                )
+                send_message(chat_id, msg)
 
         offset = update_id + 1
 
     with open("offset.txt", "w") as f:
         f.write(str(offset))
-
 
 # ---------------- GOLD PRICE ----------------
 def get_gold_rate():
@@ -245,6 +246,7 @@ def main():
     # send daily prices only on scheduled run
     if os.environ.get("SCHEDULE_RUN") == "true":
         send_daily_prices()
+
 
 
 
