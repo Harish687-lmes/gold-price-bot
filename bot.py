@@ -47,26 +47,47 @@ def get_gold_rate():
 
 # ---------------- SILVER PRICE ----------------
 def get_silver_rate():
-    import requests, re
+    import requests
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    url = "https://www.goldrateindia.com/silver-rate-today/"
+    # Global silver USD per ounce
+    silver_csv = requests.get(
+        "https://stooq.com/q/l/?s=si.f&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
+        timeout=10
+    ).text
 
-    r = requests.get(url, headers=headers, timeout=15)
-    html = r.text
+    last_line = silver_csv.strip().split("\n")[-1]
+    usd_per_oz = float(last_line.split(",")[6])
 
-    # extract "₹ 27,000 per 100g" style value
-    match = re.search(r"₹\s*([\d,]+)\s*per\s*100g", html)
+    # USD to INR
+    fx_csv = requests.get(
+        "https://stooq.com/q/l/?s=usdinr&f=sd2t2ohlcv&h&e=csv",
+        headers=headers,
+        timeout=10
+    ).text
 
-    if not match:
-        return "N/A"
+    fx_line = fx_csv.strip().split("\n")[-1]
+    usd_inr = float(fx_line.split(",")[6])
 
-    price_100g = float(match.group(1).replace(",", ""))
+    # Step 1: bullion ₹/g
+    bullion = (usd_per_oz * usd_inr) / 31.1035
 
-    price_per_g = price_100g / 100
+    # Step 2: import duty 10%
+    after_duty = bullion * 1.10
 
-    return round(price_per_g, 2)
+    # Step 3: AIDC 5%
+    after_aidc = after_duty * 1.05
+
+    # Step 4: GST 3%
+    after_gst = after_aidc * 1.03
+
+    # Step 5: local dealer premium (Tamil Nadu avg)
+    retail = after_gst * 1.22
+
+    return round(retail, 2)
+
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price():
@@ -96,5 +117,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
