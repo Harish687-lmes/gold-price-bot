@@ -88,23 +88,48 @@ def get_silver_rate():
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price(city="Chennai"):
-    import requests
+    import requests, json, os
+    from datetime import date
 
+    cache_file = "fuel_cache.json"
+    today = str(date.today())
+
+    # 1️⃣ Try live fetch (PPAC)
     try:
-        url = "https://www.iocl.com/fuel-price-data"
-        data = requests.get(url, timeout=15).json()
+        url = "https://ppac.gov.in/sites/default/files/fuel_price_data.csv"
+        r = requests.get(url, timeout=15)
 
-        city = city.lower()
+        if r.status_code == 200:
+            lines = r.text.splitlines()
+            headers = lines[0].split(",")
 
-        for item in data["data"]:
-            if item["city"].lower() == city:
-                petrol = float(item["petrol"])
-                diesel = float(item["diesel"])
-                return {"petrol": petrol, "diesel": diesel}
+            for line in lines[1:]:
+                cols = line.split(",")
+                if cols[0].lower() == city.lower():
+                    petrol = float(cols[1])
+                    diesel = float(cols[2])
+
+                    # Save cache
+                    data = {
+                        "date": today,
+                        "petrol": petrol,
+                        "diesel": diesel
+                    }
+                    with open(cache_file, "w") as f:
+                        json.dump(data, f)
+
+                    return {"petrol": petrol, "diesel": diesel}
 
     except Exception:
         pass
 
+    # 2️⃣ If live fetch fails → use yesterday cache
+    if os.path.exists(cache_file):
+        with open(cache_file, "r") as f:
+            data = json.load(f)
+            return {"petrol": data["petrol"], "diesel": data["diesel"]}
+
+    # 3️⃣ First day fallback
     return {"petrol": "N/A", "diesel": "N/A"}
 
 #----------------get today price------------------------
@@ -158,6 +183,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
