@@ -88,48 +88,47 @@ def get_silver_rate():
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price(city="Chennai"):
-    import requests, json, os
-    from datetime import date
+    import requests
 
-    cache_file = "fuel_cache.json"
-    today = str(date.today())
-
-    # 1️⃣ Try live fetch (PPAC)
     try:
-        url = "https://ppac.gov.in/sites/default/files/fuel_price_data.csv"
-        r = requests.get(url, timeout=15)
+        # IndianOil dealer locator API
+        url = "https://locator.iocl.com/Locator/LocateRestServlet"
 
-        if r.status_code == 200:
-            lines = r.text.splitlines()
-            headers = lines[0].split(",")
+        payload = {
+            "service": "fuelPrice",
+            "city": city
+        }
 
-            for line in lines[1:]:
-                cols = line.split(",")
-                if cols[0].lower() == city.lower():
-                    petrol = float(cols[1])
-                    diesel = float(cols[2])
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Content-Type": "application/json"
+        }
 
-                    # Save cache
-                    data = {
-                        "date": today,
-                        "petrol": petrol,
-                        "diesel": diesel
-                    }
-                    with open(cache_file, "w") as f:
-                        json.dump(data, f)
+        r = requests.post(url, json=payload, headers=headers, timeout=15)
 
-                    return {"petrol": petrol, "diesel": diesel}
+        if r.status_code != 200:
+            return {"petrol": "N/A", "diesel": "N/A"}
+
+        data = r.json()
+
+        # take average price from stations
+        petrol_prices = []
+        diesel_prices = []
+
+        for st in data.get("data", []):
+            if "petrol" in st and st["petrol"]:
+                petrol_prices.append(float(st["petrol"]))
+            if "diesel" in st and st["diesel"]:
+                diesel_prices.append(float(st["diesel"]))
+
+        if petrol_prices and diesel_prices:
+            petrol = round(sum(petrol_prices)/len(petrol_prices), 2)
+            diesel = round(sum(diesel_prices)/len(diesel_prices), 2)
+            return {"petrol": petrol, "diesel": diesel}
 
     except Exception:
         pass
 
-    # 2️⃣ If live fetch fails → use yesterday cache
-    if os.path.exists(cache_file):
-        with open(cache_file, "r") as f:
-            data = json.load(f)
-            return {"petrol": data["petrol"], "diesel": data["diesel"]}
-
-    # 3️⃣ First day fallback
     return {"petrol": "N/A", "diesel": "N/A"}
 
 #----------------get today price------------------------
@@ -183,6 +182,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
