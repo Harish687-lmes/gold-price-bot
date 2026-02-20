@@ -88,48 +88,23 @@ def get_silver_rate():
 
 # ---------------- FUEL (STATIC SAMPLE) ----------------
 def get_fuel_price(city="Chennai"):
-    import requests
 
-    try:
-        # IndianOil dealer locator API
-        url = "https://locator.iocl.com/Locator/LocateRestServlet"
+    fuel_data = {
+        "Chennai": {"petrol": 100.90, "diesel": 92.48},
+        "Bangalore": {"petrol": 101.94, "diesel": 87.89},
+        "Hyderabad": {"petrol": 109.66, "diesel": 97.82},
+        "Mumbai": {"petrol": 106.31, "diesel": 94.27},
+        "Delhi": {"petrol": 96.72, "diesel": 89.62},
+        "Kolkata": {"petrol": 106.03, "diesel": 92.76},
+        "Pune": {"petrol": 106.21, "diesel": 92.74},
+        "Ahmedabad": {"petrol": 96.42, "diesel": 92.17},
+        "Jaipur": {"petrol": 108.48, "diesel": 93.72},
+        "Coimbatore": {"petrol": 101.73, "diesel": 93.33},
+        "Madurai": {"petrol": 101.41, "diesel": 93.03},
+        "Trichy": {"petrol": 101.28, "diesel": 92.93},
+    }
 
-        payload = {
-            "service": "fuelPrice",
-            "city": city
-        }
-
-        headers = {
-            "User-Agent": "Mozilla/5.0",
-            "Content-Type": "application/json"
-        }
-
-        r = requests.post(url, json=payload, headers=headers, timeout=15)
-
-        if r.status_code != 200:
-            return {"petrol": "N/A", "diesel": "N/A"}
-
-        data = r.json()
-
-        # take average price from stations
-        petrol_prices = []
-        diesel_prices = []
-
-        for st in data.get("data", []):
-            if "petrol" in st and st["petrol"]:
-                petrol_prices.append(float(st["petrol"]))
-            if "diesel" in st and st["diesel"]:
-                diesel_prices.append(float(st["diesel"]))
-
-        if petrol_prices and diesel_prices:
-            petrol = round(sum(petrol_prices)/len(petrol_prices), 2)
-            diesel = round(sum(diesel_prices)/len(diesel_prices), 2)
-            return {"petrol": petrol, "diesel": diesel}
-
-    except Exception:
-        pass
-
-    return {"petrol": "N/A", "diesel": "N/A"}
+    return fuel_data.get(city, {"petrol": "N/A", "diesel": "N/A"})
 
 #----------------get today price------------------------
 def get_today_prices():
@@ -182,6 +157,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
