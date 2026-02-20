@@ -13,18 +13,22 @@ def send(msg):
 def get_gold_rate():
     import requests
 
-    url = "https://api.exchangerate.host/latest?base=XAU&symbols=INR"
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/GC=F"
 
-    data = requests.get(url, timeout=10).json()
+    headers = {"User-Agent": "Mozilla/5.0"}
 
-    # INR per ounce
-    inr_per_oz = data["rates"]["INR"]
+    data = requests.get(url, headers=headers, timeout=10).json()
 
-    # convert ounce → gram
-    price24 = inr_per_oz / 31.1035
+    # price in USD per ounce
+    usd_per_oz = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+
+    # convert to INR per gram
+    usd_inr = 83.0
+    price24 = usd_per_oz * usd_inr / 31.1035
     price22 = price24 * 0.916
 
     return round(price22,2), round(price24,2)
+
 def main():
     g22,g24 = get_gold_rate()
 
@@ -35,5 +39,6 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
