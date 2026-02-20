@@ -82,7 +82,7 @@ def get_silver_rate():
     bullion_per_g *= 1.03   # GST (3%)
 
     # Tamil Nadu market normalization factor
-    retail_price = bullion_per_g * 0.92
+    retail_price = bullion_per_g * 0.94
 
     return round(retail_price, 2)
 
@@ -143,6 +143,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
