@@ -39,8 +39,8 @@ def get_gold_rate():
     usd_inr = float(fx_line.split(",")[6])
 
     base_price = usd_per_oz * usd_inr / 31.1035
-    price24 = base_price * 1.0655
-    price22 = price24 * 0.916
+    price24 = base_price * 1.0652
+    price22 = price24 * 0.91666
 
     return round(price22, 2), round(price24, 2)
 
@@ -143,6 +143,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
