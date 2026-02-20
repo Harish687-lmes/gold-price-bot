@@ -39,7 +39,7 @@ def get_gold_rate():
     usd_inr = float(fx_line.split(",")[6])
 
     base_price = usd_per_oz * usd_inr / 31.1035
-    price24 = base_price * 1.066
+    price24 = base_price * 1.067
     price22 = price24 * 0.9166613
 
     return round(price22, 2), round(price24, 2)
@@ -82,7 +82,7 @@ def get_silver_rate():
     bullion_per_g *= 1.03   # GST (3%)
 
     # Tamil Nadu market normalization factor
-    retail_price = bullion_per_g * 0.965
+    retail_price = bullion_per_g * 0.968
 
     return round(retail_price, 2)
 
@@ -143,6 +143,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
