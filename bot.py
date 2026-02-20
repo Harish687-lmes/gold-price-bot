@@ -12,24 +12,27 @@ def send(msg):
     )
 def get_gold_rate():
     import requests
+    import csv
+    from io import StringIO
 
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json"
-    }
+    headers = {"User-Agent": "Mozilla/5.0"}
 
-    # Chennai gold rate API used by financial portals
-    url = "https://priceapi.moneycontrol.com/pricefeed/commodity/gold"
-
+    # LBMA Gold Price USD per ounce (official benchmark)
+    url = "https://data-asg.goldprice.org/dbXRates/USD"
     data = requests.get(url, headers=headers, timeout=10).json()
 
-    # MCX gold price ₹ per 10 grams
-    price_10g = float(data["data"]["pricecurrent"])
+    usd_per_oz = data["items"][0]["xauPrice"]
 
-    # convert to per gram
-    price24 = price_10g / 10
+    # Get live USDINR
+    fx_url = "https://open.er-api.com/v6/latest/USD"
+    fx = requests.get(fx_url, headers=headers, timeout=10).json()
+    usd_inr = fx["rates"]["INR"]
 
-    # convert to 22K jewellery purity
+    # Convert to INR per gram
+    base_price24 = usd_per_oz * usd_inr / 31.1035
+
+    # India import duty + GST + premium (~17.5%)
+    price24 = base_price24 * 1.175
     price22 = price24 * 0.916
 
     return round(price22, 2), round(price24, 2)
@@ -45,6 +48,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
