@@ -139,15 +139,13 @@ def get_silver_rate():
     fx_line = fx_csv.strip().split("\n")[-1]
     usd_inr = float(fx_line.split(",")[6])
 
-    # international price per gram
+    # International gram price
     base_price = usd_per_oz * usd_inr / 31.1035
 
-    # Indian bullion conversion (kg market)
-    india_factor = 3.15
-    price_per_kg = base_price * india_factor
+    # Chennai calibrated retail factor
+    india_factor = 3.72
 
-    # convert to gram
-    price_per_g = price_per_kg / 1000
+    price_per_g = base_price * india_factor
 
     return round(price_per_g, 2)
 
@@ -197,5 +195,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
