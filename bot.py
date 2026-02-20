@@ -15,7 +15,7 @@ def get_gold_rate():
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # --- 1) Global gold price (USD per ounce) from Stooq ---
+    # --- 1) Global gold price (USD per ounce) ---
     gold_csv = requests.get(
         "https://stooq.com/q/l/?s=gc.f&f=sd2t2ohlcv&h&e=csv",
         headers=headers,
@@ -38,12 +38,8 @@ def get_gold_rate():
     # --- 3) Convert ounce → gram ---
     base_price24 = usd_per_oz * usd_inr / 31.1035
 
-    # --- 4) Convert global bullion → Indian physical bullion (IBJA approximation) ---
-    import_duty = 0.15      # 15% govt duty
-    gst = 0.03              # 3% GST
-    market_premium = 0.01   # dealer spread (approx Chennai)
-
-    ibja_factor = 1 + import_duty + gst + market_premium
+    # --- 4) Indian bullion parity (IBJA calibrated) ---
+    ibja_factor = 1.065
 
     price24 = base_price24 * ibja_factor
     price22 = price24 * 0.916
@@ -61,6 +57,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
