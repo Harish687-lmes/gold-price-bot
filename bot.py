@@ -38,8 +38,8 @@ def get_gold_rate():
     # --- 3) Convert ounce → gram ---
     base_price24 = usd_per_oz * usd_inr / 31.1035
 
-    # --- 4) Indian bullion parity (IBJA calibrated) ---
-    ibja_factor = 1.065
+    # --- 4) Chennai retail calibration ---
+    ibja_factor = 1.070   # tuned for Chennai market
 
     price24 = base_price24 * ibja_factor
     price22 = price24 * 0.916
@@ -57,6 +57,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
