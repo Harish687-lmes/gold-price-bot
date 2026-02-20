@@ -117,23 +117,23 @@ def get_gold_rate():
 def get_silver_rate():
     import requests
 
-    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
 
-    # MCX Silver India (₹ per kg)
-    url = "https://priceapi.moneycontrol.com/pricefeed/commodity/silver"
-    r = requests.get(url, headers=headers, timeout=10)
+        url = "https://priceapi.moneycontrol.com/pricefeed/commodity/silver"
+        r = requests.get(url, headers=headers, timeout=10)
 
-    if r.status_code != 200:
-        raise Exception("Silver price fetch failed")
+        if r.status_code != 200:
+            return "N/A"
 
-    data = r.json()
+        data = r.json()
+        price_per_kg = float(data["data"]["pricecurrent"])
 
-    price_per_kg = float(data["data"]["pricecurrent"])
+        return round(price_per_kg / 1000, 2)
 
-    # convert kg → gram
-    price_per_g = price_per_kg / 1000
+    except Exception:
+        return "N/A"
 
-    return round(price_per_g, 2)
 
 
 
@@ -165,7 +165,7 @@ def send_daily_prices():
             f"📊 {city} Daily Prices ({datetime.now().date()})\n\n"
             f"Gold 22K ₹{g22}/g\n"
             f"Gold 24K ₹{g24}/g\n"
-            f"Silver ₹{silver}/g\n\n"
+            f"Silver ₹{silver}/g\n" if silver != "N/A" else "Silver price unavailable\n"
             f"Petrol ₹{fuel['petrol']}\n"
             f"Diesel ₹{fuel['diesel']}"
         )
@@ -181,6 +181,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
