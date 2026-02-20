@@ -13,27 +13,24 @@ def send(msg):
 def get_gold_rate():
     import requests
 
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json"
+    }
 
-    # IBJA India bullion benchmark (₹ per 10g)
-    url = "https://www.goodreturns.in/gold-rates/chennai.html"
-    html = requests.get(url, headers=headers, timeout=10).text
+    # Chennai gold rate API used by financial portals
+    url = "https://priceapi.moneycontrol.com/pricefeed/commodity/gold"
 
-    import re
+    data = requests.get(url, headers=headers, timeout=10).json()
 
-    # extract 24K price
-    m24 = re.search(r'24 Carat Gold Rate.*?₹\s*([0-9,]+)', html, re.S)
-    m22 = re.search(r'22 Carat Gold Rate.*?₹\s*([0-9,]+)', html, re.S)
+    # MCX gold price ₹ per 10 grams
+    price_10g = float(data["data"]["pricecurrent"])
 
-    if not m24 or not m22:
-        raise Exception("Could not fetch Chennai gold rate")
+    # convert to per gram
+    price24 = price_10g / 10
 
-    price24 = float(m24.group(1).replace(",", ""))
-    price22 = float(m22.group(1).replace(",", ""))
-
-    # website gives per 10g → convert to per gram
-    price24 = price24 / 10
-    price22 = price22 / 10
+    # convert to 22K jewellery purity
+    price22 = price24 * 0.916
 
     return round(price22, 2), round(price24, 2)
 
@@ -48,6 +45,7 @@ def main():
     send(f"📊 Gold Price {datetime.now().date()}\n22K ₹{g22}/g\n24K ₹{g24}/g")
 
 main()
+
 
 
 
