@@ -140,7 +140,8 @@ def get_today_prices():
 
 # ---------------- MAIN ----------------
 def main():
-    g22, g24, silver = get_today_prices()
+    g22, g24 = get_gold_rate()
+    silver = get_silver_rate()
     fuel = get_fuel_price("Chennai")
 
     message = (
@@ -157,6 +158,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
